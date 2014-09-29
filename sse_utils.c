@@ -34,7 +34,7 @@
 #define asm __asm__
 
 /*
- * malloc aligned memory on 64-byte boundary
+ * malloc aligned memory on 128-byte boundary
  *
  * returns pointer to aligned memory or NULL if failed
  *
@@ -48,7 +48,7 @@ void *sse_utils_malloc(int bytes)
 {
 	void *p;
 
-	if (posix_memalign(&p, 64, bytes) == 0)
+	if (posix_memalign(&p, 128, bytes) == 0)
 		return p;
 
 	return NULL;
@@ -96,7 +96,7 @@ void sse_utils_vmuls(float *c, const float *a, const float *b, int len)
 
 /*
  * do vector point-wise multiplication on double-precision (64-bit)
- * doubles
+ * floats
  *
  * equivalent to "for (i = 0; i < len; i++) c[i] = a[i] * b[i];"
  */
@@ -143,9 +143,77 @@ void sse_utils_vmuld(double *c, const double *a, const double *b, int
  */
 float sse_utils_sums(const float *a, int len)
 {
-	float sum;
-	_mm256
+	register int i;
+	register int vlen;
+	float sum[8];
+	__m256 a_256, sum_256;
+	__m128 a_128, sum_128;
 
+	vlen = len - 8;
 
-	return sum;
+	sum_256 = _mm256_setzero_ps();
+	for (i = 0; i <= vlen; i += 8) {
+		a_256 = _mm256_loadu_ps(&a[i]);
+		sum_256 = _mm256_hadd_ps(sum_256, a_256);
+	}
+	sum_256 = _mm256_hadd_ps(sum_256, sum_256);
+	_mm256_storeu_ps(sum, sum_256);
+
+	vlen = len - 4;
+
+	sum_128 = _mm_loadu_ps(sum);
+	for (; i <= vlen; i += 4) {
+		a_128 = _mm_loadu_ps(&a[i]);
+		sum_128 = _mm_hadd_ps(sum_128, a_128);
+	}
+	sum_128 = _mm_hadd_ps(sum_128, sum_128);
+	sum_128 = _mm_hadd_ps(sum_128, sum_128);
+	_mm_store_ss(sum, sum_128);
+
+	for (; i < len; i++) {
+		sum[0] += a[i];
+	}
+
+	return sum[0];
+}
+
+/*
+ * returns the sum of all values in array a, which must contain len
+ * elements and double-precision (64-bit) floats
+ *
+ * equivalent to "for (sum = 0, i = 0; i < len; i++) sum += a[i];"
+ */
+double sse_utils_sumd(const double *a, int len)
+{
+	register int i;
+	register int vlen;
+	double sum[4];
+	__m256d a_256, sum_256;
+	__m128d a_128, sum_128;
+
+	vlen = len - 4;
+
+	sum_256 = _mm256_setzero_pd();
+	for (i = 0; i <= vlen; i += 4) {
+		a_256 = _mm256_loadu_pd(&a[i]);
+		sum_256 = _mm256_hadd_pd(sum_256, a_256);
+	}
+	sum_256 = _mm256_hadd_pd(sum_256, sum_256);
+	_mm256_storeu_pd(sum, sum_256);
+
+	vlen = len - 2;
+
+	sum_128 = _mm_loadu_pd(sum);
+	for (; i <= vlen; i += 2) {
+		a_128 = _mm_loadu_pd(&a[i]);
+		sum_128 = _mm_hadd_pd(sum_128, a_128);
+	}
+	sum_128 = _mm_hadd_pd(sum_128, sum_128);
+	_mm_store_sd(sum, sum_128);
+
+	for (; i < len; i++) {
+		sum[0] += a[i];
+	}
+
+	return sum[0];
 }

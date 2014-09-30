@@ -143,38 +143,27 @@ void sse_utils_vmuld(double *c, const double *a, const double *b, int
  */
 float sse_utils_sums(const float *a, int len)
 {
+	float sum;
 	register int i;
 	register int vlen;
-	float sum[8];
-	__m256 a_256, sum_256;
-	__m128 a_128, sum_128;
-
-	vlen = len - 8;
-
-	sum_256 = _mm256_setzero_ps();
-	for (i = 0; i <= vlen; i += 8) {
-		a_256 = _mm256_loadu_ps(&a[i]);
-		sum_256 = _mm256_hadd_ps(sum_256, a_256);
-	}
-	sum_256 = _mm256_hadd_ps(sum_256, sum_256);
-	_mm256_storeu_ps(sum, sum_256);
+	__m128 sum_128, a_128;
 
 	vlen = len - 4;
 
-	sum_128 = _mm_loadu_ps(sum);
-	for (; i <= vlen; i += 4) {
+	sum_128 = _mm_setzero_ps();
+	for (i = 0; i <= vlen; i += 4) {
 		a_128 = _mm_loadu_ps(&a[i]);
-		sum_128 = _mm_hadd_ps(sum_128, a_128);
+		sum_128 = _mm_add_ps(sum_128, a_128);
 	}
 	sum_128 = _mm_hadd_ps(sum_128, sum_128);
 	sum_128 = _mm_hadd_ps(sum_128, sum_128);
-	_mm_store_ss(sum, sum_128);
+	_mm_store_ss(&sum, sum_128);
 
 	for (; i < len; i++) {
-		sum[0] += a[i];
+		sum += a[i];
 	}
 
-	return sum[0];
+	return sum;
 }
 
 /*
@@ -185,35 +174,24 @@ float sse_utils_sums(const float *a, int len)
  */
 double sse_utils_sumd(const double *a, int len)
 {
+	double sum;
 	register int i;
 	register int vlen;
-	double sum[4];
-	__m256d a_256, sum_256;
-	__m128d a_128, sum_128;
-
-	vlen = len - 4;
-
-	sum_256 = _mm256_setzero_pd();
-	for (i = 0; i <= vlen; i += 4) {
-		a_256 = _mm256_loadu_pd(&a[i]);
-		sum_256 = _mm256_hadd_pd(sum_256, a_256);
-	}
-	sum_256 = _mm256_hadd_pd(sum_256, sum_256);
-	_mm256_storeu_pd(sum, sum_256);
+	__m128d sum_128, a_128;
 
 	vlen = len - 2;
 
-	sum_128 = _mm_loadu_pd(sum);
-	for (; i <= vlen; i += 2) {
+	sum_128 = _mm_setzero_pd();
+	for (i = 0; i <= vlen; i += 2) {
 		a_128 = _mm_loadu_pd(&a[i]);
-		sum_128 = _mm_hadd_pd(sum_128, a_128);
+		sum_128 = _mm_add_pd(sum_128, a_128);
 	}
 	sum_128 = _mm_hadd_pd(sum_128, sum_128);
-	_mm_store_sd(sum, sum_128);
+	_mm_store_sd(&sum, sum_128);
 
 	for (; i < len; i++) {
-		sum[0] += a[i];
+		sum += a[i];
 	}
 
-	return sum[0];
+	return sum;
 }

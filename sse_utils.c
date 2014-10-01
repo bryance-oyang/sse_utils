@@ -38,8 +38,9 @@
  * your program. In other words, you must know what you're doing!
  *
  * You may not notice a speedup if your arrays are too large, because
- * the majority of time may be spent on cache misses rather than actual
- * computation. "Too large" depends on the size of your CPU cache.
+ * the majority of time may be spent on cache misses and other memory
+ * operations rather than actual computation. "Too large" depends on the
+ * size of your CPU cache.
  */
 
 /*

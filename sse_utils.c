@@ -40,6 +40,11 @@
  * computation. "Too large" depends on the size of your CPU cache.
  */
 
+/*
+ * NOTE: To those wishing to modify source code for this file, be aware
+ * that gcc may have problems with function pointers to intrinsics
+ */
+
 #define _POSIX_C_SOURCE 200112L
 #include <stdlib.h>
 #include <stdio.h>

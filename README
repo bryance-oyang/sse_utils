@@ -2,7 +2,6 @@ Utilities to take advantage of the various SSE and AVX instruction
 sets on modern processors. Can potentially make programs run 2x-8x
 faster
 
-
 Usage notes:
 
 You will find documentation for functions in the comment block above

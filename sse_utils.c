@@ -74,8 +74,8 @@ void *sse_utils_malloc(int bytes)
 }
 
 /*
- * do vector point-wise multiplication on single-precision (32-bit)
- * floats
+ * sse_utils_vmuls: do vector point-wise multiplication on
+ * single-precision (32-bit) floats
  *
  * equivalent to "for (i = 0; i < len; i++) c[i] = a[i] * b[i];"
  */
@@ -114,8 +114,8 @@ void sse_utils_vmuls(float *c, const float *a, const float *b, int len)
 }
 
 /*
- * do vector point-wise multiplication on double-precision (64-bit)
- * floats
+ * sse_utils_vmuld: do vector point-wise multiplication on
+ * double-precision (64-bit) floats
  *
  * equivalent to "for (i = 0; i < len; i++) c[i] = a[i] * b[i];"
  */

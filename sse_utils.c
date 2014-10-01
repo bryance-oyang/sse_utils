@@ -33,7 +33,9 @@
  * Speedup only comes from vectorizing, so make data structures
  * appropriately, e.g. if you have a list of (x,y) coordinates, put them
  * all in a single array in memory like: xyxyxyxyxyxy and make a single
- * call to the appropriate sse_utils function
+ * call to the appropriate sse_utils function. Making many calls to
+ * these functions can cause the function call overhead to slow down
+ * your program. In other words, you must know what you're doing!
  *
  * You may not notice a speedup if your arrays are too large, because
  * the majority of time may be spent on cache misses rather than actual

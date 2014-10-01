@@ -148,6 +148,8 @@ float sse_utils_sums(const float *a, int len)
 	register int vlen;
 	__m128 sum_128, a_128;
 
+	/* NOTE: not doing ymm register loops (__m256) b/c hadd for ymm
+	 * registers works differently */
 	vlen = len - 4;
 
 	sum_128 = _mm_setzero_ps();
@@ -181,6 +183,8 @@ double sse_utils_sumd(const double *a, int len)
 
 	vlen = len - 2;
 
+	/* NOTE: not doing ymm register loops (__m256d) b/c hadd for ymm
+	 * registers works differently */
 	sum_128 = _mm_setzero_pd();
 	for (i = 0; i <= vlen; i += 2) {
 		a_128 = _mm_loadu_pd(&a[i]);

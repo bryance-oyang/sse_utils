@@ -13,8 +13,19 @@
 /*
  * Usage notes:
  *
+ * You will find documentation for functions in the comment block above
+ * each function definition in sse_utils.c
+ *
+ * Functions are suffixed with "s" or "d" depending on whether they
+ * operate on single-precision (32-bit) floats or double-precision
+ * (64-bit) doubles
+ *
+ * Highly suggest you use sse_utils_malloc instead of malloc for data to
+ * be passed to sse_utils functions, but this is not required
+ *
  * Suggested compiler and OS: gcc and linux, or else you figure out how
- * to get yours working
+ * to get yours working. gcc version must be new enough to support Intel
+ * Intrinsics for SSE and AVX
  *
  * CPU must support the SSE and AVX instruction sets, Sandy Bridge or
  * newer should do
@@ -23,6 +34,10 @@
  * appropriately, e.g. if you have a list of (x,y) coordinates, put them
  * all in a single array in memory like: xyxyxyxyxyxy and make a single
  * call to the appropriate sse_utils function
+ *
+ * You may not notice a speedup if your arrays are too large, because
+ * the majority of time may be spent on cache misses rather than actual
+ * computation. "Too large" depends on the size of your CPU cache.
  */
 
 #define _POSIX_C_SOURCE 200112L
@@ -33,8 +48,12 @@
 
 #define asm __asm__
 
+/******************/
+/* IMPLEMENTATION */
+/******************/
+
 /*
- * malloc aligned memory on 128-byte boundary
+ * sse_utils_malloc: malloc aligned memory on 128-byte boundary
  *
  * returns pointer to aligned memory or NULL if failed
  *
@@ -136,8 +155,8 @@ void sse_utils_vmuld(double *c, const double *a, const double *b, int
 }
 
 /*
- * returns the sum of all values in array a, which must contain len
- * elements and single-precision (32-bit) floats
+ * sse_utils_sums: returns the sum of all values in array a, which must
+ * contain len elements and single-precision (32-bit) floats
  *
  * equivalent to "for (sum = 0, i = 0; i < len; i++) sum += a[i];"
  */
@@ -169,8 +188,8 @@ float sse_utils_sums(const float *a, int len)
 }
 
 /*
- * returns the sum of all values in array a, which must contain len
- * elements and double-precision (64-bit) floats
+ * sse_utils_sumd: returns the sum of all values in array a, which must
+ * contain len elements and double-precision (64-bit) doubles
  *
  * equivalent to "for (sum = 0, i = 0; i < len; i++) sum += a[i];"
  */

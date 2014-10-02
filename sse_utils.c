@@ -1,7 +1,7 @@
 /*
- * Utilities to take advantage of the various SSE and AVX instruction
- * sets on modern processors. Can potentially make programs run 2x-8x
- * faster
+ * sse_utils.c: Utilities to take advantage of the various SSE and AVX
+ * instruction sets on modern processors. Can potentially make programs
+ * run 2x-8x faster
  *
  * Copyright (C) 2014 Bryance Oyang
  *
@@ -79,6 +79,19 @@ void *sse_utils_malloc(int bytes)
 		return p;
 
 	return NULL;
+}
+
+/*
+ * sse_utils_free: in case you missed the memo
+ *
+ * you can always free memory allocated by sse_utils_malloc with the
+ * libc free
+ *
+ * this function is provided in case you forget that
+ */
+void sse_utils_free(void *p)
+{
+	free(p);
 }
 
 /*

@@ -254,14 +254,25 @@ float sse_utils_sums(const float *a, int len)
 	float sum;
 	register int i;
 	register int vlen;
-	__m128 sum_128, a_128;
+	__m128 sum_128, a_128, b_128;
 
 	/* NOTE: not doing ymm register loops (__m256) b/c hadd for ymm
 	 * registers works differently */
-	vlen = len - 4;
+	vlen = len - 8;
 
 	sum_128 = _mm_setzero_ps();
-	for (i = 0; i <= vlen; i += 4) {
+	for (i = 0; i <= vlen; i += 8) {
+		/* Sandy Bridge can load 2 things in one go */
+		a_128 = _mm_loadu_ps(&a[i]);
+		b_128 = _mm_loadu_ps(&a[i + 4]);
+
+		sum_128 = _mm_add_ps(sum_128, a_128);
+		sum_128 = _mm_add_ps(sum_128, b_128);
+	}
+
+	vlen = len - 4;
+
+	for (; i <= vlen; i += 4) {
 		a_128 = _mm_loadu_ps(&a[i]);
 		sum_128 = _mm_add_ps(sum_128, a_128);
 	}
@@ -287,14 +298,25 @@ double sse_utils_sumd(const double *a, int len)
 	double sum;
 	register int i;
 	register int vlen;
-	__m128d sum_128, a_128;
-
-	vlen = len - 2;
+	__m128d sum_128, a_128, b_128;
 
 	/* NOTE: not doing ymm register loops (__m256d) b/c hadd for ymm
 	 * registers works differently */
+	vlen = len - 4;
+
 	sum_128 = _mm_setzero_pd();
-	for (i = 0; i <= vlen; i += 2) {
+	for (i = 0; i <= vlen; i += 4) {
+		/* Sandy Bridge can load 2 things in one go */
+		a_128 = _mm_loadu_pd(&a[i]);
+		b_128 = _mm_loadu_pd(&a[i + 2]);
+
+		sum_128 = _mm_add_pd(sum_128, a_128);
+		sum_128 = _mm_add_pd(sum_128, b_128);
+	}
+
+	vlen = len - 2;
+
+	for (; i <= vlen; i += 2) {
 		a_128 = _mm_loadu_pd(&a[i]);
 		sum_128 = _mm_add_pd(sum_128, a_128);
 	}

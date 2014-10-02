@@ -82,6 +82,93 @@ void *sse_utils_malloc(int bytes)
 }
 
 /*
+ * sse_utils_sums: returns the sum of all values in array a, which must
+ * contain len elements and single-precision (32-bit) floats
+ *
+ * equivalent to "for (sum = 0, i = 0; i < len; i++) sum += a[i];"
+ */
+float sse_utils_sums(const float *a, int len)
+{
+	float sum;
+	register int i;
+	register int vlen;
+	__m128 sum_128, a_128, b_128;
+
+	/* NOTE: not doing ymm register loops (__m256) b/c hadd for ymm
+	 * registers works differently */
+	vlen = len - 8;
+
+	sum_128 = _mm_setzero_ps();
+	for (i = 0; i <= vlen; i += 8) {
+		/* Sandy Bridge can load 2 things in one go */
+		a_128 = _mm_loadu_ps(&a[i]);
+		b_128 = _mm_loadu_ps(&a[i + 4]);
+
+		sum_128 = _mm_add_ps(sum_128, a_128);
+		sum_128 = _mm_add_ps(sum_128, b_128);
+	}
+
+	vlen = len - 4;
+
+	for (; i <= vlen; i += 4) {
+		a_128 = _mm_loadu_ps(&a[i]);
+		sum_128 = _mm_add_ps(sum_128, a_128);
+	}
+	sum_128 = _mm_hadd_ps(sum_128, sum_128);
+	sum_128 = _mm_hadd_ps(sum_128, sum_128);
+	_mm_store_ss(&sum, sum_128);
+
+	for (; i < len; i++) {
+		sum += a[i];
+	}
+
+	return sum;
+}
+
+/*
+ * sse_utils_sumd: returns the sum of all values in array a, which must
+ * contain len elements and double-precision (64-bit) doubles
+ *
+ * equivalent to "for (sum = 0, i = 0; i < len; i++) sum += a[i];"
+ */
+double sse_utils_sumd(const double *a, int len)
+{
+	double sum;
+	register int i;
+	register int vlen;
+	__m128d sum_128, a_128, b_128;
+
+	/* NOTE: not doing ymm register loops (__m256d) b/c hadd for ymm
+	 * registers works differently */
+	vlen = len - 4;
+
+	sum_128 = _mm_setzero_pd();
+	for (i = 0; i <= vlen; i += 4) {
+		/* Sandy Bridge can load 2 things in one go */
+		a_128 = _mm_loadu_pd(&a[i]);
+		b_128 = _mm_loadu_pd(&a[i + 2]);
+
+		sum_128 = _mm_add_pd(sum_128, a_128);
+		sum_128 = _mm_add_pd(sum_128, b_128);
+	}
+
+	vlen = len - 2;
+
+	for (; i <= vlen; i += 2) {
+		a_128 = _mm_loadu_pd(&a[i]);
+		sum_128 = _mm_add_pd(sum_128, a_128);
+	}
+	sum_128 = _mm_hadd_pd(sum_128, sum_128);
+	_mm_store_sd(&sum, sum_128);
+
+	for (; i < len; i++) {
+		sum += a[i];
+	}
+
+	return sum;
+}
+
+/*
  * sse_utils_vadds: do vector point-wise addition on single-precision
  * (32-bit) floats
  *
@@ -241,91 +328,4 @@ void sse_utils_vmuld(double *c, const double *a, const double *b, int
 	for (; i < len; i++) {
 		c[i] = a[i] * b[i];
 	}
-}
-
-/*
- * sse_utils_sums: returns the sum of all values in array a, which must
- * contain len elements and single-precision (32-bit) floats
- *
- * equivalent to "for (sum = 0, i = 0; i < len; i++) sum += a[i];"
- */
-float sse_utils_sums(const float *a, int len)
-{
-	float sum;
-	register int i;
-	register int vlen;
-	__m128 sum_128, a_128, b_128;
-
-	/* NOTE: not doing ymm register loops (__m256) b/c hadd for ymm
-	 * registers works differently */
-	vlen = len - 8;
-
-	sum_128 = _mm_setzero_ps();
-	for (i = 0; i <= vlen; i += 8) {
-		/* Sandy Bridge can load 2 things in one go */
-		a_128 = _mm_loadu_ps(&a[i]);
-		b_128 = _mm_loadu_ps(&a[i + 4]);
-
-		sum_128 = _mm_add_ps(sum_128, a_128);
-		sum_128 = _mm_add_ps(sum_128, b_128);
-	}
-
-	vlen = len - 4;
-
-	for (; i <= vlen; i += 4) {
-		a_128 = _mm_loadu_ps(&a[i]);
-		sum_128 = _mm_add_ps(sum_128, a_128);
-	}
-	sum_128 = _mm_hadd_ps(sum_128, sum_128);
-	sum_128 = _mm_hadd_ps(sum_128, sum_128);
-	_mm_store_ss(&sum, sum_128);
-
-	for (; i < len; i++) {
-		sum += a[i];
-	}
-
-	return sum;
-}
-
-/*
- * sse_utils_sumd: returns the sum of all values in array a, which must
- * contain len elements and double-precision (64-bit) doubles
- *
- * equivalent to "for (sum = 0, i = 0; i < len; i++) sum += a[i];"
- */
-double sse_utils_sumd(const double *a, int len)
-{
-	double sum;
-	register int i;
-	register int vlen;
-	__m128d sum_128, a_128, b_128;
-
-	/* NOTE: not doing ymm register loops (__m256d) b/c hadd for ymm
-	 * registers works differently */
-	vlen = len - 4;
-
-	sum_128 = _mm_setzero_pd();
-	for (i = 0; i <= vlen; i += 4) {
-		/* Sandy Bridge can load 2 things in one go */
-		a_128 = _mm_loadu_pd(&a[i]);
-		b_128 = _mm_loadu_pd(&a[i + 2]);
-
-		sum_128 = _mm_add_pd(sum_128, a_128);
-		sum_128 = _mm_add_pd(sum_128, b_128);
-	}
-
-	vlen = len - 2;
-
-	for (; i <= vlen; i += 2) {
-		a_128 = _mm_loadu_pd(&a[i]);
-		sum_128 = _mm_add_pd(sum_128, a_128);
-	}
-	sum_128 = _mm_hadd_pd(sum_128, sum_128);
-	_mm_store_sd(&sum, sum_128);
-
-	for (; i < len; i++) {
-		sum += a[i];
-	}
-
-	return sum;
 }

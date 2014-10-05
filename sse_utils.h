@@ -19,6 +19,10 @@ void sse_utils_vadds(float *c, const float *a, const float *b, int len);
 void sse_utils_vaddd(double *c, const double *a, const double *b, int
 		len);
 
+void sse_utils_vsubs(float *c, const float *a, const float *b, int len);
+void sse_utils_vsubd(double *c, const double *a, const double *b, int
+		len);
+
 void sse_utils_vmuls(float *c, const float *a, const float *b, int len);
 void sse_utils_vmuld(double *c, const double *a, const double *b, int
 		len);

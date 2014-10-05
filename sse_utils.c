@@ -263,6 +263,87 @@ void sse_utils_vaddd(double *c, const double *a, const double *b, int
 }
 
 /*
+ * sse_utils_vsubs: do vector point-wise subtraction on single-precision
+ * (32-bit) floats
+ *
+ * equivalent to "for (i = 0; i < len; i++) c[i] = a[i] - b[i];"
+ */
+void sse_utils_vsubs(float *c, const float *a, const float *b, int len)
+{
+	register int i;
+	register int vlen;
+	__m256 c_256, a_256, b_256;
+	__m128 c_128, a_128, b_128;
+
+	vlen = len - 8;
+
+	for (i = 0; i <= vlen; i += 8) {
+		a_256 = _mm256_loadu_ps(&a[i]);
+		b_256 = _mm256_loadu_ps(&b[i]);
+
+		c_256 = _mm256_sub_ps(a_256, b_256);
+
+		_mm256_storeu_ps(&c[i], c_256);
+	}
+
+	vlen = len - 4;
+
+	for (; i <= vlen; i += 4) {
+		a_128 = _mm_loadu_ps(&a[i]);
+		b_128 = _mm_loadu_ps(&b[i]);
+
+		c_128 = _mm_sub_ps(a_128, b_128);
+
+		_mm_storeu_ps(&c[i], c_128);
+	}
+
+	for (; i < len; i++) {
+		c[i] = a[i] - b[i];
+	}
+}
+
+/*
+ * sse_utils_vsubd: do vector point-wise subtraction on double-precision
+ * (64-bit) floats
+ *
+ * equivalent to "for (i = 0; i < len; i++) c[i] = a[i] - b[i];"
+ */
+void sse_utils_vsubd(double *c, const double *a, const double *b, int
+		len)
+{
+	register int i;
+	register int vlen;
+	__m256d c_256, a_256, b_256;
+	__m128d c_128, a_128, b_128;
+
+	vlen = len - 4;
+
+	for (i = 0; i <= vlen; i += 4) {
+		a_256 = _mm256_loadu_pd(&a[i]);
+		b_256 = _mm256_loadu_pd(&b[i]);
+
+		c_256 = _mm256_sub_pd(a_256, b_256);
+
+		_mm256_storeu_pd(&c[i], c_256);
+	}
+
+	vlen = len - 2;
+
+	for (; i <= vlen; i += 2) {
+		a_128 = _mm_loadu_pd(&a[i]);
+		b_128 = _mm_loadu_pd(&b[i]);
+
+		c_128 = _mm_sub_pd(a_128, b_128);
+
+		_mm_storeu_pd(&c[i], c_128);
+	}
+
+	for (; i < len; i++) {
+		c[i] = a[i] - b[i];
+	}
+}
+
+/*
  * sse_utils_vmuls: do vector point-wise multiplication on
  * single-precision (32-bit) floats
  *
